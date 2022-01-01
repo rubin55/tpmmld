@@ -2,16 +2,15 @@
 
 `tpmmld` is the *ThinkPad Mute-Mic Light Daemon*. If you have a certain
 ThinkPad where you have a mute-mic indicator led on the `F4` button, this
-daemon will controll it, based on the current PulseAudio mute state.
+daemon will control it, based on the current PulseAudio mute state.
 
 Has an additional feature that can mute/unmute *all* inputs instead of only
 the one you're monitoring.
 
 Note: to enable/disable the led, the `sudo` and `tee` commands are used.
 I'm sure there's a better way, but I didn't want this program to run with
-elevated privileges itself. 
+elevated privileges itself.
 
-[[_TOC_]]
 
 ## Install
 
@@ -21,7 +20,8 @@ Ideally:
 pip install tpmmld
 ```
 
-However, I have not uploaded this package to pypi yet. So you can also do:
+However, If it's not available there for whatever reason, you can also get
+it going yourself, directly from the git repository:
 
 ```shell
 git clone https://github.com/rubin55/tpmmld
@@ -29,7 +29,7 @@ cd tpmmld
 python -m venv .venv
 pip instal -r requirements.txt
 bin/tpmmld.sh -s # shows available input source devices, with index number
-bin/tpmmld-sh -i 123 # run tpmmld in foreground, monitor device 123,  
+bin/tpmmld-sh -i 123 # run tpmmld in foreground, monitor device 123,
 ```
 
 ## Usage
@@ -53,12 +53,12 @@ options:
 
 ## Build
 
-Since this is a python package, you don't really need to build, but if you 
+Since this is a python package, you don't really need to build, but if you
 would like to build the pip packages, you can do that as follows:
 
 ```shell
 python -m build
 ```
 
-You will then find the pip package binaries in `dist/`. You can install 
+You will then find the pip package binaries in `dist/`. You can install
 them using `pip`.
