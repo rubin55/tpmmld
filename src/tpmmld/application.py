@@ -35,22 +35,12 @@ class Application:
     def __init__(self):
         parser = ArgumentParser(prog=program)
 
-        parser.add_argument('-a', '--all',
-                            dest='MUTE_ALL',
-                            default=False,
-                            help='when muting, mute all available inputs, when unmuting, '
-                                 'unmute all available inputs',
-                            action='store_true')
         parser.add_argument('-d', '--daemonize',
                             dest='DAEMONIZE',
                             default=False,
                             help='run in background (daemonized mode). If not specified, '
                                  'the process will run in the foreground output to stdin',
                             action='store_true')
-        parser.add_argument('-i', '--index',
-                            dest='INDEX',
-                            default=0,
-                            help=f'specify index of device to monitor')
         parser.add_argument('-s', '--sources',
                             dest='SOURCES',
                             default=False,
@@ -86,10 +76,7 @@ class Application:
                                 level=numeric_loglevel,
                                 stream=stderr)
 
-        # Do we want to mute all sources?
-        self.mute_all = self.args.MUTE_ALL
-
-        # do we want to daemonize?
+        # Do we want to daemonize?
         self.daemonize = self.args.DAEMONIZE
 
         # The led state file.
@@ -116,35 +103,31 @@ class Application:
                 print(f"Source index {source.index}: \"{source.description}\" ({state})")
             exit(0)
 
-        # Set source of which we monitor its mute-state.
-        monitored_source = 0
-        try:
-            monitored_source = sources[int(self.args.INDEX)]
-        except (KeyError, ValueError):
-            log.error(f'Source with index {self.args.INDEX} not found, try "-s" first.')
-            exit(1)
-
         # Store current volume levels.
         volume_memory = {}
         for source in sources.values():
             volume_memory.update({source.index: pulse.volume_get_all_chans(source)})
 
-        # Initial mute state
-        previous_mute_state = monitored_source.mute
+        # Initial mute state.
+        initial_mute_counter = 0
+        for source in sources.values():
+            initial_mute_counter += source.mute
+
+        # Previous mute state.
+        previous_mute_counter = initial_mute_counter
 
         # Loopsy.
         while True:
-            current_mute_state = pulse.get_source_by_name(monitored_source.name).mute
-            if current_mute_state == 0 and previous_mute_state == 1:
-                previous_mute_state = 0
+            updated_mute_counter = 0
+            for source in sources.values():
+                updated_mute_counter += pulse.get_source_by_name(source.name).mute
 
-                log.info(f"Source with index {monitored_source.index} was muted but became unmuted")
-                if self.mute_all:
-                    log.info("Additionally unmuting any other sources I have:")
-                    for source in sources.values():
-                        log.info(f"Unmuting source {source.index}")
-                        pulse.volume_set_all_chans(source, volume_memory[int(source.index)])
-                        pulse.mute(source, mute=False)
+            if previous_mute_counter > updated_mute_counter:
+                log.info(f"Mute counter went down, from {previous_mute_counter} to {updated_mute_counter}, unmuting all input sources:")
+                for source in sources.values():
+                    log.info(f"Unmuting source {source.index}")
+                    pulse.volume_set_all_chans(source, volume_memory[int(source.index)])
+                    pulse.mute(source, mute=False)
 
                 log.info(f"Turning off mute-mic indicator led")
                 # if path.exists(self.led_state_file) and path.isfile(self.led_state_file):
@@ -152,16 +135,15 @@ class Application:
                 #         f.write('0')
                 p = Popen(['sudo', 'tee', self.led_state_file], stdout=PIPE, stdin=PIPE, stderr=STDOUT).communicate(input=b'0\n')
 
-            elif current_mute_state == 1 and previous_mute_state == 0:
-                previous_mute_state = 1
+                # And set previous mute counter to updated mute counter.
+                previous_mute_counter = updated_mute_counter
 
-                log.info(f"Source with index {monitored_source.index} was unmuted but became muted")
-                if self.mute_all:
-                    log.info("Additionally muting any sources I have:")
-                    for source in sources.values():
-                        log.info(f"Muting source {source.index}")
-                        volume_memory[int(source.index)] = pulse.volume_get_all_chans(source)
-                        pulse.mute(source, mute=True)
+            elif previous_mute_counter < updated_mute_counter:
+                log.info(f"Mute counter went up, from {previous_mute_counter} to {updated_mute_counter}, muting all input sources:")
+                for source in sources.values():
+                    log.info(f"Muting source {source.index}")
+                    pulse.volume_set_all_chans(source, volume_memory[int(source.index)])
+                    pulse.mute(source, mute=True)
 
                 log.info(f"Turning on mute-mic indicator led")
                 # if path.exists(self.led_state_file) and path.isfile(self.led_state_file):
@@ -169,8 +151,8 @@ class Application:
                 #         f.write('1')
                 p = Popen(['sudo', 'tee', self.led_state_file], stdout=PIPE, stdin=PIPE, stderr=STDOUT).communicate(input=b'1\n')
 
-            else:
-                log.debug(f"Current state: {current_mute_state}")
+                # And set previous mute counter to updated mute counter.
+                previous_mute_counter = updated_mute_counter
 
             sleep(1)
 
