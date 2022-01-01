@@ -1,0 +1,4 @@
+build~=0.7.0
+python-daemon~=2.3.0
+python-dateutil~=2.8.1
+pulsectl~=21.10.5
