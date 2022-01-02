@@ -1,7 +1,7 @@
 import logging
 from argparse import ArgumentParser
 from daemon import DaemonContext
-from os import getgid, getuid
+from os import getgid, getuid, nice
 from subprocess import Popen, PIPE, STDOUT
 from sys import stderr, stdout, version_info
 from time import sleep
@@ -25,6 +25,7 @@ def verify_python_version() -> None:
 
 # Main entry.
 def main() -> None:
+    nice(19)
     verify_python_version()
 
     app = Application()
