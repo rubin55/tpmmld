@@ -118,12 +118,13 @@ class Application:
         previous_mute_counter = initial_mute_counter
 
         # Loopsy.
+        initial_run = True
         while True:
             updated_mute_counter = 0
             for source in sources.values():
                 updated_mute_counter += pulse.get_source_by_name(source.name).mute
 
-            if previous_mute_counter > updated_mute_counter:
+            if initial_run or previous_mute_counter > updated_mute_counter:
                 log.info(f"Mute counter went down, from {previous_mute_counter} to {updated_mute_counter}, unmuting all input sources:")
                 for source in sources.values():
                     log.info(f"Unmuting source {source.index}")
@@ -155,6 +156,10 @@ class Application:
                 # And set previous mute counter to updated mute counter.
                 previous_mute_counter = updated_mute_counter
 
+            # Initial run only happens once.
+            initial_run = False
+
+            # Pause before re-evaluating.
             sleep(1)
 
     def run(self):
