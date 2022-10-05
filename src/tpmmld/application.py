@@ -85,7 +85,10 @@ class Application:
 
     def loop(self):
         # Initialize pulse object.
-        pulse = Pulse()
+        pulse = Pulse(connect=False)
+
+        # Connect to Pulse instance.
+        pulse.connect(wait=True)
 
         # Put Pulse sources in an index.
         sources = {}
