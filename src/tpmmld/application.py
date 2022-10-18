@@ -161,6 +161,10 @@ class Application:
         # Make sure we're connected and wait for it.
         pulse.connect(wait=True)
 
+        # By default, unmute input sources.
+        log.info("Unmuting sources before entering event loop")
+        self.unmute(pulse)
+
         # Determine event input device.
         thinkpad_evdev_name = "ThinkPad Extra Buttons"
         thinkpad_micmute_event_code = 248
