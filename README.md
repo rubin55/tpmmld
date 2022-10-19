@@ -11,8 +11,7 @@ where the process exits after doing the requested state change.
 
 When no options are specified (run as daemon in foreground) or when passing
 `-d` to run in background (daemonized), `tpmmld` will monitor the *ThinkPad
-Extra Buttons* input device to keypresses (specifically, key event `248`, the
-`micmute` button).
+Extra Buttons* input device for keypresses of the mute-mic button.
 
 ## Prerequisites
 
@@ -42,6 +41,7 @@ git repository:
 git clone https://github.com/rubin55/tpmmld
 cd tpmmld
 python -m venv .venv
+. .venv/bin/activate
 pip instal -r requirements.txt
 bin/tpmmld.sh -s # shows available input source devices, with index number
 bin/tpmmld.sh -t # toggle mute state on/off
