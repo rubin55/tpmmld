@@ -167,13 +167,15 @@ class Application:
 
         # Determine event input device.
         thinkpad_evdev_name = "ThinkPad Extra Buttons"
-        thinkpad_micmute_event_code = 248
+        # 2021 ThinkPad T14  Gen 1 AMD: 190
+        # 2022 ThinkPad P14s Gen 2 AMD: 248
+        thinkpad_micmute_event_codes = (190, 248)
         devices = [InputDevice(path) for path in list_devices()]
         for device in devices:
             if device.name == thinkpad_evdev_name:
                 log.info(f"Monitoring keypresses from {device.path} ({device.name})..")
                 for event in device.read_loop():
-                    if event.type == ecodes.EV_KEY and event.code == thinkpad_micmute_event_code and event.value == 1:
+                    if event.type == ecodes.EV_KEY and event.code in thinkpad_micmute_event_codes and event.value == 1:
                         self.toggle(pulse)
 
         # Error out if we did not find a thinkpad extra buttons input.
