@@ -10,27 +10,33 @@ by using the `-m`, `-u` or `-t` arguments. This mode is essentially a one-shot
 where the process exits after doing the requested state change.
 
 When no options are specified (run as daemon in foreground) or when passing
-`-d` to run in background (daemonized), `tpmmld` will monitor the *ThinkPad 
+`-d` to run in background (daemonized), `tpmmld` will monitor the *ThinkPad
 Extra Buttons* input device to keypresses (specifically, key event `248`, the
 `micmute` button).
 
-Note: to enable/disable the led, the `sudo` and `tee` commands are used.
-I'm sure there's a better way, but I didn't want this program to run with
-elevated privileges itself. You have to configure `sudo` in such a way that
-you can run `echo 1 | sudo tee /sys/class/leds/platform\:\:micmute/brightness`
-non-interactively (i.e., without a password prompt).
+## Prerequisites
 
+1. To read input from the micmute key, you need to be a member of the `input`
+   group, or specifically, whichever group owns the device files under the
+   `/dev/input` directory.
+
+2. To enable/disable the led, the `sudo` and `tee` commands are used.
+   You have to configure `sudo` in such a way that you can run `echo 1 | sudo
+   tee /sys/class/leds/platform\:\:micmute/brightness` non-interactively
+   (i.e., without a password prompt).
 
 ## Install
 
-Ideally:
+`tpmmld` is published in [pypi](https://pypi.org/project/tpmmld), so you can
+simply install using `pip`:
 
 ```shell
 pip install tpmmld
 ```
 
-However, If it's not available there for whatever reason, you can also get
-it going yourself, directly from the git repository:
+However, If it's not available there for whatever reason, or if you would like
+to run it from source, you can also get it going yourself, directly from the
+git repository:
 
 ```shell
 git clone https://github.com/rubin55/tpmmld
@@ -76,3 +82,15 @@ python -m build
 
 You will then find the pip package binaries in `dist/`. You can install
 them using `pip`.
+
+## Deploy
+
+I use [twine](https://pypi.org/project/twine) to publish `tpmmld` on pypi. To
+deploy, make sure you first run the build stage. After that you can deploy the
+artifacts in the `dist` directory as follows:
+
+```shell
+twine upload dist/*
+```
+
+Note that you need valid for this project pypi credentials to do so .
